@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe – Chat nội bộ (MVP)</title>
+<style>
+  /* Wireframe low-fidelity: chỉ dùng thang xám, không thư viện ngoài. Mục đích: duyệt BỐ CỤC, không duyệt màu. */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+         font-size: 14px; line-height: 1.45; color: #222; background: #f2f2f2; }
+  header.doc { background: #fff; border-bottom: 2px solid #333; padding: 16px 24px; }
+  header.doc h1 { margin: 0 0 4px; font-size: 22px; }
+  .warn { border: 2px solid #333; background: #fff; padding: 8px 16px; margin: 8px 0 0; font-weight: 600; }
+  nav.toc { background: #fff; padding: 8px 24px 16px; border-bottom: 1px solid #bbb; }
+  nav.toc a { color: #222; margin-right: 16px; display: inline-block; padding: 2px 0; }
+  main { padding: 16px 24px 48px; }
+  section.screen { background: #fff; border: 1px solid #999; margin: 0 0 32px; padding: 16px 16px 8px; }
+  section.screen > h2 { margin: 0; font-size: 18px; }
+  .meta { color: #444; margin: 4px 0 12px; font-size: 13px; }
+  .legend { columns: 2; column-gap: 32px; margin: 12px 0 8px; padding-left: 0; list-style: none; }
+  .legend li { break-inside: avoid; margin-bottom: 4px; }
+  /* Chú thích số: vòng tròn VIỀN (khác badge chưa đọc là viên ĐẶC màu đen) */
+  .n { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%;
+       background: #fff; color: #000; border: 2px dotted #000; font-size: 12px; font-weight: 700; flex: none; margin: 0 4px;
+       vertical-align: middle; font-style: normal; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  /* Khung trình duyệt */
+  .browser { border: 2px solid #333; background: #fff; width: 100%; max-width: 1120px; }
+  .browser .bar { background: #ddd; border-bottom: 1px solid #333; padding: 4px 8px; font-size: 12px; display: flex; gap: 8px; align-items: center; }
+  .browser .tab { background: #fff; border: 1px solid #333; border-bottom: none; padding: 2px 12px; font-weight: 600; }
+  .phone { border: 2px solid #333; border-radius: 16px; background: #fff; width: 390px; max-width: 100%; overflow: hidden; }
+  .phone .notch { height: 16px; background: #ddd; border-bottom: 1px solid #333; }
+  /* Thành phần */
+  .box { border: 1px dashed #777; padding: 8px; }
+  .card { border: 1px solid #555; background: #fff; padding: 16px; }
+  .center { max-width: 400px; margin: 24px auto; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-weight: 600; margin-bottom: 4px; }
+  .input { border: 1px solid #555; min-height: 40px; padding: 8px; color: #555; background: #fff; display: flex; align-items: center; justify-content: space-between; }
+  .input.err { border: 3px solid #000; }
+  .hint { font-size: 12px; color: #444; margin-top: 4px; }
+  .errtext { font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .errtext::before { content: "⚠ "; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border: 1px solid #333;
+         background: #fff; color: #222; font-weight: 600; }
+  .btn.primary { background: #333; color: #fff; }
+  .btn.disabled { background: #e6e6e6; color: #555; border-style: dashed; }
+  .btn.block { width: 100%; }
+  .btn.small { min-height: 32px; padding: 0 8px; font-size: 13px; }
+  .link { text-decoration: underline; }
+  .banner { border: 2px solid #333; background: #eee; padding: 8px 12px; font-weight: 600; margin-bottom: 12px; }
+  .banner.ok::before { content: "✓ "; } .banner.bad::before { content: "⚠ "; } .banner.info::before { content: "ⓘ "; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #555; color: #fff; display: inline-flex; align-items: center;
+            justify-content: center; font-weight: 700; flex: none; }
+  .avatar.sm { width: 32px; height: 32px; font-size: 13px; } .avatar.lg { width: 72px; height: 72px; font-size: 28px; }
+  .badge { min-width: 22px; height: 22px; border-radius: 11px; background: #000; color: #fff; font-size: 12px; font-weight: 700;
+           display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+  /* Bố cục 3 cột */
+  .app { display: grid; grid-template-columns: 300px 1fr 260px; min-height: 520px; }
+  .app.two { grid-template-columns: 300px 1fr; }
+  .col { border-right: 1px solid #999; display: flex; flex-direction: column; min-width: 0; }
+  .col:last-child { border-right: none; }
+  .colhead { min-height: 56px; border-bottom: 1px solid #999; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+  .colhead .title { font-weight: 700; font-size: 16px; flex: 1; min-width: 0; }
+  .item { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #ddd; align-items: center; }
+  .item.active { background: #e3e3e3; }
+  .item .body { flex: 1; min-width: 0; }
+  .item .name { display: flex; justify-content: space-between; gap: 8px; }
+  .item .preview { color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item.unread .name b, .item.unread .preview { font-weight: 700; color: #000; }
+  .time { font-size: 12px; color: #444; white-space: nowrap; }
+  .msgs { flex: 1; padding: 12px; background: #f6f6f6; display: flex; flex-direction: column; gap: 8px; position: relative; }
+  .msg { max-width: 70%; padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.me { align-self: flex-end; background: #444; color: #fff; }
+  .msg.other { align-self: flex-start; background: #fff; border: 1px solid #999; }
+  .msg .t { display: block; font-size: 11px; margin-top: 2px; opacity: .85; }
+  .grp { display: flex; gap: 8px; align-self: flex-start; max-width: 75%; }
+  .grp .sender { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .sys { align-self: center; font-size: 12px; font-style: italic; color: #444; text-align: center; padding: 2px 8px; }
+  .failed { align-self: flex-end; max-width: 70%; border: 2px dashed #000; background: #fff; padding: 8px 12px; border-radius: 12px; }
+  .composer { border-top: 1px solid #999; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-end; }
+  .composer .input { flex: 1; min-height: 48px; }
+  .counter { font-size: 12px; font-weight: 700; text-align: right; }
+  .skel { height: 14px; background: #ddd; margin: 6px 0; }
+  .panel { padding: 12px; }
+  .panel h4 { margin: 12px 0 6px; font-size: 13px; text-transform: uppercase; color: #444; }
+  .member { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eee; }
+  .member .grow { flex: 1; }
+  .tag { border: 1px solid #333; font-size: 11px; padding: 0 6px; font-weight: 700; }
+  .chip { border: 1px solid #333; padding: 2px 8px; border-radius: 12px; display: inline-flex; gap: 6px; margin: 2px 4px 2px 0; }
+  .dialog { border: 2px solid #222; background: #fff; width: 440px; max-width: 100%; box-shadow: 4px 4px 0 #999; }
+  .dialog .dh { border-bottom: 1px solid #999; padding: 12px 16px; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; }
+  .dialog .db { padding: 16px; } .dialog .df { border-top: 1px solid #999; padding: 12px 16px; display: flex; gap: 8px; justify-content: flex-end; }
+  .check { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .check .bx { width: 18px; height: 18px; border: 2px solid #333; background: #fff; flex: none; }
+  .check .bx.on { background: #333; }
+  .radio { display: flex; gap: 8px; align-items: center; padding: 6px 0; }
+  .radio .o { width: 18px; height: 18px; border: 2px solid #333; border-radius: 50%; flex: none; }
+  .floating { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); }
+  .mini { flex: 1 1 300px; border: 1px solid #999; min-width: 260px; }
+  .label-state { font-size: 12px; font-weight: 700; background: #222; color: #fff; padding: 2px 8px; display: inline-block; margin-bottom: 6px; }
+  .overlay { background: #bbb; padding: 24px; display: flex; justify-content: center; }
+  .overlay { min-width: 0; }
+  @media (max-width: 900px) { .app, .app.two { grid-template-columns: 1fr; } .col { border-right: none; border-bottom: 1px solid #999; } .legend { columns: 1; } }
+  @media (max-width: 600px) { main { padding: 8px; } section.screen { padding: 8px; } .overlay { flex-basis: 100% !important; padding: 8px; }
+    .mini { min-width: 0; flex-basis: 100%; } .composer { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+<header class="doc">
+  <h1>Wireframe – Ứng dụng chat nội bộ (MVP)</h1>
+  <div>Đi kèm <code>docs/10-ui-ux.md</code> · Phiên bản 1.0 – Draft · 2026-11-14 · Trạng thái: <strong>CHỜ DUYỆT</strong></div>
+  <p class="warn">Đây là BẢN THIẾT KẾ đen trắng để duyệt bố cục – không phải ảnh chụp sản phẩm đang chạy. Không dùng làm bằng chứng nghiệm thu.
+     Dữ liệu trong khung là dữ liệu mẫu. Ký hiệu: <span class="n">1</span> = chú thích (giải thích ở dưới mỗi khung); <span class="badge">3</span> = badge số tin chưa đọc trên giao diện. Không có trạng thái online, "đã xem", "đang nhập…" vì đó là phần mở rộng (không thuộc MVP).</p>
+</header>
+<nav class="toc" aria-label="Mục lục khung">
+  <strong>Khung:</strong>
+  <a href="#w01">W-01 SC-01</a><a href="#w01b">W-01b SC-01</a><a href="#w02">W-02 SC-02</a><a href="#w02b">W-02b SC-02</a>
+  <a href="#w03">W-03 SC-03</a><a href="#w04">W-04 SC-03</a><a href="#w05">W-05 SC-03</a><a href="#w06">W-06 SC-03</a>
+  <a href="#w07">W-07 SC-03</a><a href="#w08">W-08 SC-03</a><a href="#w09">W-09 SC-04</a><a href="#w10">W-10 SC-05</a>
+  <a href="#w11">W-11 SC-06</a><a href="#w12">W-12 SC-06a/06b</a><a href="#w13">W-13 SC-07</a><a href="#w14">W-14 Điện thoại</a>
+</nav>
+<main>
+
+<!-- W-01 -->
+<section class="screen" id="w01">
+  <h2>W-01 · SC-01 – Đăng ký (mặc định)</h2>
+  <p class="meta">SRS: TK-01, TK-02 · UC-01 · Trạng thái: ST-02 (đang gửi) · API: E-01</p>
+  <div class="browser"><div class="bar"><span class="tab">Chat nội bộ</span><span>…/dang-ky</span></div>
+    <div class="center card">
+      <h3 style="margin-top:0">Tạo tài khoản <span class="n">1</span></h3>
+      <div class="field"><label>Mã đăng ký tổ chức <span class="n">2</span></label><div class="input">&nbsp;</div></div>
+      <div class="field"><label>Tên đăng nhập <span class="n">3</span></label><div class="input">nhanvien01</div>
+        <div class="hint">3–30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới</div></div>
+      <div class="field"><label>Tên hiển thị</label><div class="input">Đặng Thị Ẩn</div></div>
+      <div class="field"><label>Mật khẩu <span class="n">4</span></label><div class="input">•••••••• <span class="btn small">Hiện</span></div></div>
+      <div class="field"><label>Nhập lại mật khẩu</label><div class="input">••••••••</div></div>
+      <div class="btn primary block">Đăng ký <span class="n">5</span></div>
+      <p style="text-align:center"><span class="link">Đã có tài khoản? Đăng nhập</span> <span class="n">6</span></p>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Tiêu đề trang; con trỏ vào sẵn ô đầu tiên.</li>
+    <li><span class="n">2</span>Mã đăng ký tổ chức – kiểm tra trước mọi ô khác (QĐ-06, GU-02).</li>
+    <li><span class="n">3</span>Tên đăng nhập: chữ hoa tự đổi sang chữ thường (QĐ-07). Gợi ý quy tắc nằm ngay dưới ô.</li>
+    <li><span class="n">4</span>Nút "Hiện/Ẩn" mật khẩu. Quy tắc: ≥ 8 ký tự, có chữ và số [PDF TK-02].</li>
+    <li><span class="n">5</span>Nút chính. Khi đang gửi: khóa + biểu tượng chờ (ST-02).</li>
+    <li><span class="n">6</span>Liên kết sang SC-02.</li>
+  </ol>
+</section>
+
+<!-- W-01b -->
+<section class="screen" id="w01b">
+  <h2>W-01b · SC-01 – Đăng ký: lỗi nhập liệu</h2>
+  <p class="meta">SRS: TK-01, TK-02 · Trạng thái: ST-01 · Thông báo: M-01, M-02, M-04, M-05, M-06, M-07</p>
+  <div class="browser"><div class="bar"><span class="tab">Chat nội bộ</span><span>…/dang-ky</span></div>
+    <div class="center card">
+      <h3 style="margin-top:0">Tạo tài khoản</h3>
+      <div class="field"><label>Mã đăng ký tổ chức</label><div class="input err">abc</div>
+        <div class="errtext">Mã đăng ký tổ chức không đúng. Vui lòng liên hệ đầu mối của tổ chức để nhận mã.</div></div>
+      <div class="field"><label>Tên đăng nhập <span class="n">1</span></label><div class="input err">an nguyen</div>
+        <div class="errtext">Tên đăng nhập dài 3–30 ký tự, chỉ gồm chữ không dấu (a–z), số (0–9), dấu chấm (.) hoặc gạch dưới (_).</div></div>
+      <div class="field"><label>Tên hiển thị</label><div class="input">Nguyễn Văn An</div></div>
+      <div class="field"><label>Mật khẩu <span class="n">2</span></label><div class="input err">•••••••</div>
+        <div class="errtext">Mật khẩu phải có ít nhất 8 ký tự.</div></div>
+      <div class="field"><label>Nhập lại mật khẩu</label><div class="input err">••••••••</div>
+        <div class="errtext">Mật khẩu nhập lại không khớp.</div></div>
+      <div class="btn primary block">Đăng ký</div>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Ô lỗi có viền đậm + biểu tượng ⚠ + câu chữ (không chỉ dựa vào màu – A11Y-06). Nội dung đã nhập được giữ nguyên.</li>
+    <li><span class="n">2</span>Lỗi hiện khi rời ô và khi bấm "Đăng ký" (FRS NT-04). Trùng tên đăng nhập hiện M-01 sau khi máy chủ trả lời.</li>
+  </ol>
+</section>
+
+<!-- W-02 -->
+<section class="screen" id="w02">
+  <h2>W-02 · SC-02 – Đăng nhập (sau khi đăng ký thành công)</h2>
+  <p class="meta">SRS: TK-03 · UC-02 · Thông báo: M-40 · API: E-02</p>
+  <div class="browser"><div class="bar"><span class="tab">Chat nội bộ</span><span>…/dang-nhap</span></div>
+    <div class="center card">
+      <div class="banner ok">Đăng ký thành công. Vui lòng đăng nhập. <span class="n">1</span></div>
+      <h3 style="margin-top:0">Đăng nhập</h3>
+      <div class="field"><label>Tên đăng nhập</label><div class="input">nhanvien01 <span class="n">2</span></div></div>
+      <div class="field"><label>Mật khẩu</label><div class="input">•••••••• <span class="btn small">Hiện</span></div></div>
+      <div class="btn primary block">Đăng nhập <span class="n">3</span></div>
+      <p style="text-align:center"><span class="link">Chưa có tài khoản? Đăng ký</span></p>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Thanh thành công M-40 (chỉ hiện ngay sau đăng ký).</li>
+    <li><span class="n">2</span>Tên đăng nhập được điền sẵn sau đăng ký.</li>
+    <li><span class="n">3</span>Enter trong ô mật khẩu = bấm "Đăng nhập". Thành công → W-03.</li>
+  </ol>
+</section>
+
+<!-- W-02b -->
+<section class="screen" id="w02b">
+  <h2>W-02b · SC-02 – Đăng nhập: sai thông tin / phiên hết hạn</h2>
+  <p class="meta">SRS: TK-03 · UC-02, UC-03 · Trạng thái: ST-03, ST-04 · Thông báo: M-09, M-31</p>
+  <div class="row">
+    <div class="mini"><div class="card"><span class="label-state">ST-03 Sai thông tin</span>
+      <div class="banner bad">Tên đăng nhập hoặc mật khẩu không đúng. <span class="n">1</span></div>
+      <div class="field"><label>Tên đăng nhập</label><div class="input">nhanvien01</div></div>
+      <div class="field"><label>Mật khẩu</label><div class="input">&nbsp;</div></div>
+      <div class="btn primary block">Đăng nhập</div></div></div>
+    <div class="mini"><div class="card"><span class="label-state">ST-04 Phiên hết hạn</span>
+      <div class="banner info">Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại. <span class="n">2</span></div>
+      <div class="field"><label>Tên đăng nhập</label><div class="input">&nbsp;</div></div>
+      <div class="field"><label>Mật khẩu</label><div class="input">&nbsp;</div></div>
+      <div class="btn primary block">Đăng nhập</div></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Một câu chung cho sai tên và sai mật khẩu (TK-03-AC1). Ô mật khẩu được xóa, ô tên giữ nguyên.</li>
+    <li><span class="n">2</span>Hiện khi phiên hết 8 giờ (QĐ-09), đã đăng xuất ở nơi khác, hoặc đổi mật khẩu ở thiết bị khác.</li>
+  </ol>
+</section>
+
+<!-- W-03 -->
+<section class="screen" id="w03">
+  <h2>W-03 · SC-03 – Trang chính trên máy tính: danh sách có tin chưa đọc + chat 1-1</h2>
+  <p class="meta">SRS: CH-01, CH-02, CH-03, CH-06, TB-01, TK-05 · UC-07…UC-11 · Trạng thái: ST-05, ST-09 · API: E-09, E-11, E-12, S-02, S-03, S-05</p>
+  <div class="browser"><div class="bar"><span class="tab">(5) Chat nội bộ</span><span class="n">1</span><span>…/hoi-thoai/7</span></div>
+    <div class="app">
+      <div class="col">
+        <div class="colhead"><span class="avatar sm">A</span><span class="n">2</span><span class="title">Chat nội bộ</span><span class="badge" aria-label="5 tin chưa đọc">5</span></div>
+        <div style="padding:8px 12px; display:flex; gap:8px"><div class="input" style="flex:1">Tìm đồng nghiệp… <span class="n">3</span></div><span class="btn small">Tạo nhóm</span></div>
+        <div class="item active"><span class="avatar">B</span><div class="body"><div class="name"><b>Trần Thị Bình</b><span class="time">14:05</span></div>
+          <div class="preview">Bạn: Chiều nay họp lúc 14h nhé!</div></div></div>
+        <div class="item unread"><span class="avatar">P</span><div class="body"><div class="name"><b>Phòng Kế hoạch</b><span class="time">13:52</span></div>
+          <div class="preview">Lê Minh Cường: Mọi người gửi số liệu trước 16h…</div></div><span class="badge">3</span><span class="n">4</span></div>
+        <div class="item unread"><span class="avatar">Ẩ</span><div class="body"><div class="name"><b>Đặng Thị Ẩn</b><span class="time">Hôm qua</span></div>
+          <div class="preview">Em gửi lại file báo cáo quý nhé</div></div><span class="badge">2</span></div>
+        <div class="item"><span class="avatar">C</span><div class="body"><div class="name"><b>Lê Minh Cường</b><span class="time">12/11/2026</span></div>
+          <div class="preview">Ok anh</div></div></div>
+      </div>
+      <div class="col">
+        <div class="colhead"><span class="avatar sm">B</span><span class="title">Trần Thị Bình</span><span class="btn small">Thông tin</span><span class="n">5</span></div>
+        <div class="msgs" role="log">
+          <div class="msg other">Chào bạn, hôm nay họp lúc 14h nhé!
+Ừ, được.<span class="t">13:58</span></div>
+          <div class="msg me">Mình nhớ rồi.
+
+Sẽ mang theo bản in.<span class="t">14:01</span></div><span class="n" style="align-self:flex-end">6</span>
+          <div class="msg me">Chiều nay họp lúc 14h nhé!<span class="t">14:05</span></div>
+        </div>
+        <div class="composer"><div class="input">Nhập tin nhắn… <span class="n">7</span></div><span class="btn primary">Gửi</span></div>
+      </div>
+      <div class="col"><div class="colhead"><span class="title">Thông tin</span><span class="n">8</span></div>
+        <div class="panel" style="text-align:center"><span class="avatar lg">B</span><p><b>Trần Thị Bình</b><br>@binh.tran</p></div></div>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Tổng số chưa đọc trên tiêu đề tab "(5) Chat nội bộ" (TB-01, GĐ-15); ẩn khi bằng 0.</li>
+    <li><span class="n">2</span>Avatar của mình → SC-07 Hồ sơ. Badge tổng bên cạnh tên ứng dụng.</li>
+    <li><span class="n">3</span>Ô tìm người (SC-04) và nút "Tạo nhóm" (SC-05).</li>
+    <li><span class="n">4</span>Hội thoại có tin chưa đọc: badge số (tối đa "99+") + tên và trích tin in đậm (ST-05). Sắp theo tin mới nhất (CH-06).</li>
+    <li><span class="n">5</span>Đầu hội thoại 1-1: avatar + tên người kia. Không có trạng thái online (CH-05 không thuộc MVP).</li>
+    <li><span class="n">6</span>Tin của mình bên phải, người kia bên trái, giờ dưới mỗi tin; giữ xuống dòng và dòng trống (CH-02). Không có dấu "đã xem" (CH-04).</li>
+    <li><span class="n">7</span>Ô soạn nhiều dòng: Enter gửi, Shift + Enter xuống dòng (GF-10). Nút "Gửi" khóa khi trống.</li>
+    <li><span class="n">8</span>Cột thông tin (GX-03): với 1-1 chỉ có avatar, tên hiển thị, tên đăng nhập.</li>
+  </ol>
+</section>
+
+<!-- W-04 -->
+<section class="screen" id="w04">
+  <h2>W-04 · SC-03 – Danh sách hội thoại: trống / đang tải / lỗi</h2>
+  <p class="meta">SRS: CH-06 · UC-10 · Trạng thái: ST-06, ST-07, ST-08 · Thông báo: M-23, M-24</p>
+  <div class="row">
+    <div class="mini"><div class="colhead"><span class="title">ST-06 Trống</span></div>
+      <div style="padding:8px 12px"><div class="input">Tìm đồng nghiệp…</div></div>
+      <div class="panel" style="text-align:center"><p>Bạn chưa có cuộc trò chuyện nào. Hãy tìm đồng nghiệp ở ô phía trên để bắt đầu. <span class="n">1</span></p></div></div>
+    <div class="mini"><div class="colhead"><span class="title">ST-07 Đang tải</span></div>
+      <div class="panel"><div class="item"><span class="avatar" style="background:#ccc"></span><div class="body"><div class="skel" style="width:60%"></div><div class="skel"></div></div></div>
+      <div class="item"><span class="avatar" style="background:#ccc"></span><div class="body"><div class="skel" style="width:50%"></div><div class="skel"></div></div></div>
+      <div class="item"><span class="avatar" style="background:#ccc"></span><div class="body"><div class="skel" style="width:70%"></div><div class="skel"></div></div></div>
+      <span class="n">2</span></div></div>
+    <div class="mini"><div class="colhead"><span class="title">ST-08 Lỗi tải</span></div>
+      <div class="panel"><div class="banner bad">Không tải được danh sách hội thoại.</div><span class="btn">Thử lại</span> <span class="n">3</span></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>M-23 – hướng người dùng tới ô tìm. Hội thoại 1-1 chưa có tin nào không hiện ở đây (GF-09).</li>
+    <li><span class="n">2</span>Khung xương xám thay cho các dòng; không nhấp nháy khi người dùng tắt chuyển động.</li>
+    <li><span class="n">3</span>M-24 + nút "Thử lại".</li>
+  </ol>
+</section>
+
+<!-- W-05 -->
+<section class="screen" id="w05">
+  <h2>W-05 · SC-03 – Chat nhóm: tên + avatar cạnh mỗi tin, tin hệ thống</h2>
+  <p class="meta">SRS: NH-02, NH-04, CH-02 · UC-08, UC-12…UC-16 · Trạng thái: ST-10 · API: E-11, S-03, S-06</p>
+  <div class="browser"><div class="bar"><span class="tab">Chat nội bộ</span><span>…/hoi-thoai/12</span></div>
+    <div class="app">
+      <div class="col"><div class="colhead"><span class="title">Chat nội bộ</span></div>
+        <div class="item active"><span class="avatar">P</span><div class="body"><div class="name"><b>Phòng Kế hoạch</b><span class="time">13:52</span></div>
+          <div class="preview">Lê Minh Cường: Mọi người gửi số liệu…</div></div></div>
+        <div class="item"><span class="avatar">B</span><div class="body"><div class="name"><b>Trần Thị Bình</b><span class="time">14:05</span></div>
+          <div class="preview">Bạn: Chiều nay họp lúc 14h nhé!</div></div></div></div>
+      <div class="col">
+        <div class="colhead"><span class="avatar sm">P</span><span class="title">Phòng Kế hoạch · 4 thành viên</span><span class="btn small">Thông tin nhóm</span><span class="n">1</span></div>
+        <div class="msgs" role="log">
+          <div class="sys">Nguyễn Văn An đã tạo nhóm "Phòng Kế hoạch" · 09:00 <span class="n">2</span></div>
+          <div class="grp"><span class="avatar sm">B</span><div><div class="sender">Trần Thị Bình</div><div class="msg other" style="max-width:none">Chào cả nhóm!<span class="t">09:02</span></div></div></div>
+          <div class="grp"><span class="avatar sm">B</span><div><div class="sender">Trần Thị Bình <span class="n">3</span></div><div class="msg other" style="max-width:none">Tuần này mình chốt kế hoạch quý IV nhé.<span class="t">09:03</span></div></div></div>
+          <div class="sys">Nguyễn Văn An đã thêm Đặng Thị Ẩn vào nhóm · 10:15</div>
+          <div class="msg me">Mọi người xem giúp bản nháp nhé.<span class="t">10:20</span></div>
+          <div class="grp"><span class="avatar sm">C</span><div><div class="sender">Lê Minh Cường</div><div class="msg other" style="max-width:none">Mọi người gửi số liệu trước 16h hôm nay giúp mình.<span class="t">13:52</span></div></div></div>
+          <div class="sys">Nguyễn Văn An đã đổi tên nhóm thành "Phòng Kế hoạch" · 13:55</div>
+        </div>
+        <div class="composer"><div class="input">Nhập tin nhắn…</div><span class="btn primary">Gửi</span></div>
+      </div>
+      <div class="col"><div class="colhead"><span class="title">Thông tin nhóm</span></div>
+        <div class="panel"><b>Phòng Kế hoạch</b><h4>4 thành viên</h4>
+          <div class="member"><span class="avatar sm">A</span><span class="grow">Nguyễn Văn An (bạn)</span><span class="tag">Trưởng nhóm</span></div>
+          <div class="member"><span class="avatar sm">B</span><span class="grow">Trần Thị Bình</span></div>
+          <div class="member"><span class="avatar sm">C</span><span class="grow">Lê Minh Cường</span></div>
+          <div class="member"><span class="avatar sm">Ẩ</span><span class="grow">Đặng Thị Ẩn</span></div>
+          <p>Chi tiết thao tác: W-11 <span class="n">4</span></p></div></div>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Đầu nhóm: tên nhóm, số thành viên, nút "Thông tin nhóm" (mở/ẩn cột phải).</li>
+    <li><span class="n">2</span>Tin hệ thống: căn giữa, chữ nhỏ nghiêng, không avatar, có giờ (NH-04). Không tính vào số chưa đọc (QĐ-10).</li>
+    <li><span class="n">3</span>Tên + avatar cạnh MỖI tin của người khác, kể cả tin liên tiếp (NH-02, GF-16).</li>
+    <li><span class="n">4</span>Cột phải là SC-06 Quản lý nhóm (trên máy tính).</li>
+  </ol>
+</section>
+
+<!-- W-06 -->
+<section class="screen" id="w06">
+  <h2>W-06 · SC-03 – Lịch sử 50 tin/lần, hết lịch sử, có tin mới khi đang đọc tin cũ</h2>
+  <p class="meta">SRS: CH-03 · UC-09 · Trạng thái: ST-11, ST-12 · Thông báo: M-21, M-22 · API: E-11</p>
+  <div class="row">
+    <div class="mini" style="position:relative"><div class="colhead"><span class="title">Đang tải tin cũ</span></div>
+      <div class="msgs" style="min-height:240px"><div class="sys">◌ Đang tải tin cũ hơn… <span class="n">1</span></div>
+        <div class="msg other">Tin cũ thứ 71<span class="t">08:10</span></div><div class="msg me">Tin cũ thứ 72<span class="t">08:11</span></div>
+        <div class="btn primary small floating">Có tin nhắn mới ↓ <span class="n">2</span></div></div></div>
+    <div class="mini"><div class="colhead"><span class="title">Hết lịch sử</span></div>
+      <div class="msgs" style="min-height:240px"><div class="sys">Đã hiển thị toàn bộ lịch sử. <span class="n">3</span></div>
+        <div class="msg other">Tin đầu tiên của hội thoại<span class="t">01/11/2026</span></div></div></div>
+    <div class="mini"><div class="colhead"><span class="title">Lỗi tải tin cũ</span></div>
+      <div class="msgs" style="min-height:240px"><div class="banner bad" style="align-self:stretch">Không tải được tin nhắn cũ. <span class="btn small">Thử lại</span> <span class="n">4</span></div>
+        <div class="msg other">Tin đang hiện vẫn giữ nguyên<span class="t">08:10</span></div></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Cuộn tới đầu khung → tải tiếp 50 tin cũ hơn [PDF CH-03]; khung giữ nguyên vị trí đang đọc.</li>
+    <li><span class="n">2</span>Có tin mới trong lúc đọc tin cũ: không tự cuộn, hiện nút "Có tin nhắn mới ↓" (GF-15).</li>
+    <li><span class="n">3</span>M-21 khi máy chủ trả ít hơn 50 tin.</li>
+    <li><span class="n">4</span>M-22 + "Thử lại"; các tin đã hiện không bị mất.</li>
+  </ol>
+</section>
+
+<!-- W-07 -->
+<section class="screen" id="w07">
+  <h2>W-07 · SC-03 – Mất kết nối, tin gửi lỗi, tin quá 5.000 ký tự</h2>
+  <p class="meta">SRS: CH-02, NFR-13 (khuyến khích) · UC-08 · Trạng thái: ST-13, ST-14, ST-15 · Thông báo: M-17, M-20, M-33 · Sự kiện: S-02 (ack)</p>
+  <div class="browser"><div class="bar"><span class="tab">Chat nội bộ</span><span>…/hoi-thoai/7</span></div>
+    <div class="banner" role="status" style="margin:0">Mất kết nối. Đang thử kết nối lại… <span class="n">1</span></div>
+    <div class="app two">
+      <div class="col"><div class="colhead"><span class="title">Chat nội bộ</span></div>
+        <div class="item active"><span class="avatar">B</span><div class="body"><div class="name"><b>Trần Thị Bình</b><span class="time">14:05</span></div><div class="preview">Bạn: Chiều nay họp lúc 14h nhé!</div></div></div></div>
+      <div class="col">
+        <div class="colhead"><span class="avatar sm">B</span><span class="title">Trần Thị Bình</span></div>
+        <div class="msgs" style="min-height:220px">
+          <div class="msg me">Chiều nay họp lúc 14h nhé!<span class="t">14:05</span></div>
+          <div class="failed">Anh gửi giúp em biên bản họp nhé.<br><b>⚠ Gửi không thành công.</b> <span class="btn small">Gửi lại</span> <span class="n">2</span></div>
+        </div>
+        <div style="padding:0 12px"><div class="errtext">Tin nhắn vượt quá 5.000 ký tự (hiện có 5001 ký tự).</div></div>
+        <div class="composer"><div class="input err">(nội dung rất dài …) <span class="n">3</span></div>
+          <div><div class="counter">5.001 / 5.000</div><span class="btn disabled">Gửi</span></div></div>
+      </div>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Thanh M-33 khi đường dây WebSocket đứt; tự nối lại sau 1, 2, 4… tối đa 30 giây (GF-23). Nối lại được thì thanh biến mất và tải tin bị lỡ.</li>
+    <li><span class="n">2</span>Tin gửi lỗi (không có xác nhận sau 10 giây – GF-13): khung viền đứt + ⚠ + M-20 + "Gửi lại". Gửi lại không tạo tin trùng (GF-12).</li>
+    <li><span class="n">3</span>Bộ đếm hiện từ 4.501 ký tự (GF-11); quá 5.000 [PDF CH-02]: bộ đếm đậm, M-17, nút "Gửi" khóa. Nội dung không bị xóa.</li>
+  </ol>
+</section>
+
+<!-- W-08 -->
+<section class="screen" id="w08">
+  <h2>W-08 · SC-03 – Không có quyền xem / vừa bị xóa khỏi nhóm</h2>
+  <p class="meta">SRS: NFR-04, NH-03 · UC-17, UC-14 · AT-06 · Trạng thái: ST-16, ST-17 · Thông báo: M-30, M-32</p>
+  <div class="row">
+    <div class="mini"><div class="colhead"><span class="title">ST-16 Mở mã hội thoại không thuộc về mình</span></div>
+      <div class="msgs" style="min-height:180px; justify-content:center; align-items:center">
+        <div class="banner bad">Không tìm thấy hội thoại hoặc bạn không có quyền truy cập.</div>
+        <p>Không hiện tên, thành viên hay bất kỳ tin nào. <span class="n">1</span></p></div></div>
+    <div class="mini"><div class="colhead"><span class="title">ST-17 Bị xóa khi đang mở nhóm</span></div>
+      <div class="msgs" style="min-height:180px; justify-content:center; align-items:center">
+        <div class="banner info">Bạn không còn là thành viên của nhóm này.</div>
+        <span class="btn">Về danh sách hội thoại</span> <span class="n">2</span></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Bước nghiệm thu 6: tài khoản ngoài hội thoại chỉ thấy M-30 – giống hệt khi hội thoại không tồn tại (NFR-04).</li>
+    <li><span class="n">2</span>M-32; nhóm biến mất khỏi danh sách ngay; không xem được tin cũ (QĐ-04).</li>
+  </ol>
+</section>
+
+<!-- W-09 -->
+<section class="screen" id="w09">
+  <h2>W-09 · SC-04 – Tìm người dùng</h2>
+  <p class="meta">SRS: TK-06, CH-01 · UC-06, UC-07 · Trạng thái: ST-18 · Thông báo: M-14 · API: E-07, E-08</p>
+  <div class="row">
+    <div class="mini"><div class="colhead"><span class="title">Có kết quả</span></div>
+      <div style="padding:8px 12px"><div class="input" style="color:#222">đặng <span class="n">1</span></div></div>
+      <div class="item"><span class="avatar">Ẩ</span><div class="body"><b>Đặng Thị Ẩn</b><div class="preview">@an.dang</div></div><span class="n">2</span></div>
+      <div class="item"><span class="avatar">H</span><div class="body"><b>Đặng Quốc Hùng</b><div class="preview">@hung.dang</div></div></div>
+      <p class="hint" style="padding:0 12px">Tối đa 20 kết quả; không có chính bạn. <span class="n">3</span></p></div>
+    <div class="mini"><div class="colhead"><span class="title">Không có kết quả</span></div>
+      <div style="padding:8px 12px"><div class="input" style="color:#222">xyz</div></div>
+      <div class="panel" style="text-align:center">Không tìm thấy người dùng phù hợp. <span class="n">4</span></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Tìm sau khi ngừng gõ khoảng 0,3 giây (GF-07); không phân biệt hoa thường [PDF §4]; có phân biệt dấu (GĐ-10, OQ-08).</li>
+    <li><span class="n">2</span>Bấm một người → mở hội thoại 1-1 (cũ nếu đã có, không tạo trùng – CH-01).</li>
+    <li><span class="n">3</span>Mỗi dòng: avatar, tên hiển thị, tên đăng nhập. Không có trạng thái online.</li>
+    <li><span class="n">4</span>M-14 – thông tin, không phải lỗi.</li>
+  </ol>
+</section>
+
+<!-- W-10 -->
+<section class="screen" id="w10">
+  <h2>W-10 · SC-05 – Tạo nhóm (chưa đủ thành viên)</h2>
+  <p class="meta">SRS: NH-01, NH-04 · UC-12 · Trạng thái: ST-19 · Thông báo: M-25, M-26, M-27 · API: E-13</p>
+  <div class="overlay"><div class="dialog" role="dialog" aria-label="Tạo nhóm">
+    <div class="dh">Tạo nhóm <span>✕</span></div>
+    <div class="db">
+      <div class="field"><label>Tên nhóm <span class="n">1</span></label><div class="input" style="color:#222">Nhóm Đổi Mới 2026</div></div>
+      <div class="field"><label>Thêm thành viên <span class="n">2</span></label><div class="input">Tìm đồng nghiệp…</div>
+        <div style="margin-top:8px"><span class="chip">Trần Thị Bình <b>×</b></span></div></div>
+      <p><b>Đã chọn: 1 người</b> <span class="n">3</span></p>
+      <div class="errtext">Hãy chọn ít nhất 2 thành viên.</div>
+    </div>
+    <div class="df"><span class="btn">Hủy</span><span class="btn disabled">Tạo nhóm</span> <span class="n">4</span></div>
+  </div></div>
+  <ol class="legend">
+    <li><span class="n">1</span>Tên nhóm 1–100 ký tự, tiếng Việt có dấu (GS-28).</li>
+    <li><span class="n">2</span>Ô tìm như SC-04; người đã chọn hiện thành thẻ có nút "×"; không có chính mình.</li>
+    <li><span class="n">3</span>Cần chọn từ 2 người trở lên, không tính mình → nhóm tối thiểu 3 người [PDF NH-01].</li>
+    <li><span class="n">4</span>Nút "Tạo nhóm" khóa tới khi hợp lệ. Thành công → mở nhóm với tin "đã tạo nhóm".</li>
+  </ol>
+</section>
+
+<!-- W-11 -->
+<section class="screen" id="w11">
+  <h2>W-11 · SC-06 – Quản lý nhóm: trưởng nhóm / thành viên thường / xác nhận xóa</h2>
+  <p class="meta">SRS: NH-03, NH-04 · UC-13…UC-16 · Trạng thái: ST-20, ST-23 · Thông báo: M-25, M-29, M-43 · API: E-10, E-14, E-16</p>
+  <div class="row">
+    <div class="mini"><div class="colhead"><span class="title">Trưởng nhóm thấy</span></div>
+      <div class="panel">
+        <div style="display:flex; gap:8px; align-items:center"><b style="flex:1">Phòng Kế hoạch</b><span class="btn small" aria-label="Đổi tên nhóm">✎</span><span class="n">1</span></div>
+        <h4>4 thành viên</h4>
+        <div class="member"><span class="avatar sm">A</span><span class="grow">Nguyễn Văn An (bạn)</span><span class="tag">Trưởng nhóm</span></div>
+        <div class="member"><span class="avatar sm">B</span><span class="grow">Trần Thị Bình</span><span class="btn small">Xóa</span><span class="n">2</span></div>
+        <div class="member"><span class="avatar sm">C</span><span class="grow">Lê Minh Cường</span><span class="btn small">Xóa</span></div>
+        <div class="member"><span class="avatar sm">Ẩ</span><span class="grow">Đặng Thị Ẩn</span><span class="btn small">Xóa</span></div>
+        <p><span class="btn block">+ Thêm thành viên</span></p>
+        <p><span class="btn block">Rời nhóm</span> <span class="n">3</span></p></div></div>
+    <div class="mini"><div class="colhead"><span class="title">Thành viên thường thấy</span></div>
+      <div class="panel"><b>Phòng Kế hoạch</b><h4>4 thành viên</h4>
+        <div class="member"><span class="avatar sm">A</span><span class="grow">Nguyễn Văn An</span><span class="tag">Trưởng nhóm</span></div>
+        <div class="member"><span class="avatar sm">B</span><span class="grow">Trần Thị Bình (bạn)</span></div>
+        <div class="member"><span class="avatar sm">C</span><span class="grow">Lê Minh Cường</span></div>
+        <div class="member"><span class="avatar sm">Ẩ</span><span class="grow">Đặng Thị Ẩn</span></div>
+        <p><span class="btn block">Rời nhóm</span> <span class="n">4</span></p></div></div>
+    <div class="mini"><div class="colhead"><span class="title">Xác nhận xóa</span></div>
+      <div class="overlay" style="padding:16px"><div class="dialog" role="alertdialog">
+        <div class="dh">Xóa thành viên</div>
+        <div class="db">Xóa Trần Thị Bình khỏi nhóm? Người này sẽ không xem được lịch sử nhóm nữa. <span class="n">5</span></div>
+        <div class="df"><span class="btn">Hủy</span><span class="btn primary">Xóa</span></div></div></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Nút sửa tên chỉ trưởng nhóm thấy; tên mới 1–100 ký tự; đổi xong có tin hệ thống.</li>
+    <li><span class="n">2</span>"Xóa" cạnh mỗi thành viên trừ chính trưởng nhóm (GU-14).</li>
+    <li><span class="n">3</span>Trưởng nhóm "Rời nhóm" → SC-06b có bước chọn người nhận quyền.</li>
+    <li><span class="n">4</span>Thành viên thường không thấy nút sửa, "Xóa", "Thêm thành viên" (giao diện ẩn; máy chủ vẫn kiểm – M-29).</li>
+    <li><span class="n">5</span>Hộp xác nhận M-43. Con trỏ vào nút "Hủy"; Esc để đóng.</li>
+  </ol>
+</section>
+
+<!-- W-12 -->
+<section class="screen" id="w12">
+  <h2>W-12 · SC-06a Thêm thành viên · SC-06b Rời nhóm (trưởng nhóm)</h2>
+  <p class="meta">SRS: NH-03, NH-04 · UC-13, UC-16 · Trạng thái: ST-21, ST-22 · Thông báo: M-28, M-36, M-37, M-44 · API: E-15, E-17</p>
+  <div class="row">
+    <div class="overlay" style="flex:1 1 420px"><div class="dialog" role="dialog" aria-label="Thêm thành viên">
+      <div class="dh">Thêm thành viên <span>✕</span></div>
+      <div class="db">
+        <div class="field"><label>Chọn người</label><div class="input">Tìm đồng nghiệp…</div>
+          <div style="margin-top:8px"><span class="chip">Phạm Thu Hà <b>×</b></span></div>
+          <div class="hint">Người đã trong nhóm không xuất hiện trong kết quả. <span class="n">1</span></div></div>
+        <div class="check"><span class="bx"></span><span>Cho xem tin nhắn trước đó</span> <span class="n">2</span></div>
+      </div>
+      <div class="df"><span class="btn">Hủy</span><span class="btn primary">Thêm</span></div></div></div>
+    <div class="overlay" style="flex:1 1 420px"><div class="dialog" role="dialog" aria-label="Rời nhóm">
+      <div class="dh">Rời nhóm <span>✕</span></div>
+      <div class="db">
+        <p>Rời nhóm "Phòng Kế hoạch"? Bạn sẽ không xem được lịch sử nhóm nữa.</p>
+        <label><b>Chọn trưởng nhóm mới</b> <span class="n">3</span></label>
+        <div class="radio"><span class="o"></span>Trần Thị Bình</div>
+        <div class="radio"><span class="o"></span>Lê Minh Cường</div>
+        <div class="radio"><span class="o"></span>Đặng Thị Ẩn</div>
+        <div class="errtext">Hãy chọn người nhận quyền trưởng nhóm trước khi rời nhóm.</div>
+      </div>
+      <div class="df"><span class="btn">Hủy</span><span class="btn disabled">Rời nhóm</span> <span class="n">4</span></div></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Chọn được một hoặc nhiều người (GF-17). Một người không hợp lệ thì không thêm ai (M-36, GU-13).</li>
+    <li><span class="n">2</span>Ô "Cho xem tin nhắn trước đó" mặc định KHÔNG đánh dấu (QĐ-08, GS-35); áp dụng cho cả lần thêm.</li>
+    <li><span class="n">3</span>Chỉ trưởng nhóm thấy phần chọn người nhận quyền (QĐ-03). Thành viên thường chỉ thấy câu M-44.</li>
+    <li><span class="n">4</span>Nút khóa tới khi chọn người. Nếu nhóm chỉ còn trưởng nhóm: nút khóa và hiện M-28 (GĐ-18).</li>
+  </ol>
+</section>
+
+<!-- W-13 -->
+<section class="screen" id="w13">
+  <h2>W-13 · SC-07 Hồ sơ · SC-07b Đổi mật khẩu</h2>
+  <p class="meta">SRS: TK-05, TK-04, TK-02, TK-03 · UC-03, UC-04, UC-05 · Trạng thái: ST-24 · Thông báo: M-03, M-10, M-11, M-41, M-42 · API: E-03, E-05, E-06</p>
+  <div class="row">
+    <div class="mini"><div class="card">
+      <div style="text-align:center"><span class="avatar lg">Ẩ</span> <span class="n">1</span></div>
+      <div class="banner ok">Đã lưu tên hiển thị.</div>
+      <div class="field"><label>Tên đăng nhập</label><div class="input" style="background:#eee">an.dang (không đổi được)</div></div>
+      <div class="field"><label>Tên hiển thị</label><div class="input" style="color:#222">Đặng Thị Ẩn</div></div>
+      <p><span class="btn primary">Lưu</span> <span class="n">2</span></p>
+      <p><span class="btn block">Đổi mật khẩu</span></p>
+      <p><span class="btn block">Đăng xuất</span> <span class="n">3</span></p></div></div>
+    <div class="overlay" style="flex:1 1 420px"><div class="dialog" role="dialog" aria-label="Đổi mật khẩu">
+      <div class="dh">Đổi mật khẩu <span>✕</span></div>
+      <div class="db">
+        <div class="field"><label>Mật khẩu hiện tại</label><div class="input err">••••••••</div><div class="errtext">Mật khẩu hiện tại không đúng.</div></div>
+        <div class="field"><label>Mật khẩu mới</label><div class="input">••••••••••</div>
+          <div class="hint">✓ Ít nhất 8 ký tự &nbsp; ✓ Có chữ cái &nbsp; ✓ Có chữ số <span class="n">4</span></div></div>
+        <div class="field"><label>Nhập lại mật khẩu mới</label><div class="input">••••••••••</div></div>
+      </div>
+      <div class="df"><span class="btn">Hủy</span><span class="btn primary">Đổi mật khẩu</span> <span class="n">5</span></div></div></div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Avatar chữ cái lấy chữ đầu của từ cuối, giữ dấu: "Đặng Thị Ẩn" → "Ẩ" (GS-11). Không có nút tải ảnh [PDF TK-05].</li>
+    <li><span class="n">2</span>"Lưu" chỉ bật khi tên đã thay đổi; thành công hiện M-42.</li>
+    <li><span class="n">3</span>"Đăng xuất" không cần hỏi lại (GF-05); hủy phiên và về SC-02.</li>
+    <li><span class="n">4</span>Danh sách kiểm tra quy tắc cập nhật khi gõ (TK-02).</li>
+    <li><span class="n">5</span>Thành công: M-41, các thiết bị khác bị đăng xuất (QĐ-09). Lỗi khác: M-11 (trùng mật khẩu cũ), M-04.</li>
+  </ol>
+</section>
+
+<!-- W-14 -->
+<section class="screen" id="w14">
+  <h2>W-14 · SC-03 / SC-06 trên điện thoại (khung 390 px, một cột)</h2>
+  <p class="meta">SRS: TB-01, CH-02, NH-02, NH-03, NFR-12 · Trạng thái: ST-25</p>
+  <div class="row">
+    <div class="phone"><div class="notch"></div>
+      <div class="colhead"><span class="avatar sm">A</span><span class="title">Chat nội bộ</span><span class="badge">5</span><span class="n">1</span></div>
+      <div style="padding:8px 12px; display:flex; gap:8px"><div class="input" style="flex:1">Tìm đồng nghiệp…</div><span class="btn small">Tạo nhóm</span></div>
+      <div class="item unread"><span class="avatar">P</span><div class="body"><div class="name"><b>Phòng Kế hoạch</b><span class="time">13:52</span></div><div class="preview">Lê Minh Cường: Mọi người gửi số liệu…</div></div><span class="badge">3</span></div>
+      <div class="item unread"><span class="avatar">Ẩ</span><div class="body"><div class="name"><b>Đặng Thị Ẩn</b><span class="time">Hôm qua</span></div><div class="preview">Em gửi lại file báo cáo quý nhé</div></div><span class="badge">2</span></div>
+      <div class="item"><span class="avatar">B</span><div class="body"><div class="name"><b>Trần Thị Bình</b><span class="time">14:05</span></div><div class="preview">Bạn: Chiều nay họp lúc 14h nhé!</div></div></div>
+    </div>
+    <div class="phone"><div class="notch"></div>
+      <div class="colhead"><span class="btn small">← Quay lại</span><span class="n">2</span><span class="title">Phòng Kế hoạch</span><span class="btn small" aria-label="Thông tin nhóm">ⓘ</span></div>
+      <div class="msgs" style="min-height:330px">
+        <div class="sys">Nguyễn Văn An đã thêm Đặng Thị Ẩn vào nhóm · 10:15</div>
+        <div class="grp"><span class="avatar sm">C</span><div><div class="sender">Lê Minh Cường</div><div class="msg other" style="max-width:none">Mọi người gửi số liệu trước 16h hôm nay giúp mình.<span class="t">13:52</span></div></div></div>
+        <div class="msg me">Dạ em gửi ngay.<span class="t">13:55</span></div></div>
+      <div class="composer"><div class="input">Nhập tin nhắn…</div><span class="btn primary">Gửi</span> <span class="n">3</span></div>
+    </div>
+    <div class="phone"><div class="notch"></div>
+      <div class="colhead"><span class="btn small">← Quay lại</span><span class="title">Thông tin nhóm</span></div>
+      <div class="panel"><b>Phòng Kế hoạch</b><h4>4 thành viên</h4>
+        <div class="member"><span class="avatar sm">A</span><span class="grow">Nguyễn Văn An</span><span class="tag">Trưởng nhóm</span></div>
+        <div class="member"><span class="avatar sm">B</span><span class="grow">Trần Thị Bình</span></div>
+        <div class="member"><span class="avatar sm">C</span><span class="grow">Lê Minh Cường</span></div>
+        <div class="member"><span class="avatar sm">Ẩ</span><span class="grow">Đặng Thị Ẩn (bạn)</span></div>
+        <p><span class="btn block">Rời nhóm</span> <span class="n">4</span></p></div>
+    </div>
+  </div>
+  <ol class="legend">
+    <li><span class="n">1</span>Dưới 768 px: chỉ một cột. Màn đầu là danh sách hội thoại, có badge từng dòng và badge tổng.</li>
+    <li><span class="n">2</span>Chạm vào hội thoại → khung chat toàn màn hình, nút "← Quay lại".</li>
+    <li><span class="n">3</span>Trên điện thoại, phím Enter xuống dòng; gửi bằng nút "Gửi" (GF-10). Vùng bấm ≥ 44 px.</li>
+    <li><span class="n">4</span>Thông tin nhóm (SC-06) là màn hình riêng; hộp thoại SC-05, SC-06a, SC-06b hiện toàn màn hình (GX-09).</li>
+  </ol>
+</section>
+
+</main>
+</body>
+</html>
